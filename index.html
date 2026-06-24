@@ -92,24 +92,21 @@
     window.onload = function() {
         const urlParams = new URLSearchParams(window.location.search);
         const emailFromUrl = urlParams.get('utm_email');
-        const paisFromUrl = urlParams.get('pais'); // Captura el parámetro pais
+        const paisFromUrl = urlParams.get('pais'); 
         
         if (emailFromUrl) {
             document.getElementById('emailInput').value = emailFromUrl;
             console.log("Email capturado con éxito:", emailFromUrl);
         }
 
-        // Definición de links de logos de Drive (Cambiados a modo visualización directa)
         const logoMexico = "https://lh3.googleusercontent.com/d/1q8BvfZf_gvE7Z7j5JZA2bMzxtxG7vsYG";
         const logoOtros = "https://lh3.googleusercontent.com/d/12upXsdMnB3_YmXU1Dm49lfJnUlpJFbHi";
 
-        // Lógica para cambiar el logo según el país
         let logoFinal = logoOtros;
-        if (paisFromUrl && paisFromUrl.toLowerCase() === "mexico") {
+        if (paisFromUrl && (paisFromUrl.toLowerCase() === "mexico" || paisFromUrl.toLowerCase() === "méxico")) {
             logoFinal = logoMexico;
         }
 
-        // Asignar los logos a las imágenes de la página
         document.getElementById('logoApprecio').src = logoFinal;
         document.getElementById('logoApprecioSuccess').src = logoFinal;
     };
@@ -121,27 +118,30 @@
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
         
+        // Verificación de seguridad para la opción seleccionada
+        const csatInput = document.querySelector('input[name="csat"]:checked');
+        if (!csatInput) {
+            alert("Por favor, selecciona una calificación antes de enviar.");
+            return;
+        }
+
         btn.disabled = true;
         btn.innerText = 'ENVIANDO...';
 
-        // Capturamos los datos del formulario
         const email = document.getElementById('emailInput').value;
-        const csat = document.querySelector('input[name="csat"]:checked').value;
+        const csat = csatInput.value;
         const abierta = document.querySelector('textarea[name="abierta"]').value;
 
-        // Construimos los parámetros para enviarlos por el método GET (doGet)
         const params = new URLSearchParams({
             email: email,
             csat: csat,
             abierta: abierta
         });
 
-        // Enviamos los datos a Google Sheets
         fetch(WEB_APP_URL + "?" + params.toString(), {
             method: 'GET',
             mode: 'no-cors'
         }).then(() => {
-            // Si sale bien, ocultamos el formulario y mostramos el mensaje de éxito
             document.getElementById('form-content').style.display = 'none';
             document.getElementById('success-msg').style.display = 'block';
             window.scrollTo(0,0);
