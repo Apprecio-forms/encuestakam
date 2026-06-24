@@ -114,20 +114,42 @@
         document.getElementById('logoApprecioSuccess').src = logoFinal;
     };
 
-    // 2. LOGICA PROVISIONAL DE ENVÍO (Se conectará en el Paso 5)
+    // 2. CONFIGURACIÓN DE ENVÍO REAL
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbznGMFuky7P9fxJbJZfAw-sJ3AGg0DoNhpDgWUvdy5_JdlKoIJu95vNPbcgnDvqX6GO/exec"; 
+
     document.getElementById('surveyForm').onsubmit = function(e) {
         e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        
+        btn.disabled = true;
+        btn.innerText = 'ENVIANDO...';
+
+        // Capturamos los datos del formulario
         const email = document.getElementById('emailInput').value;
-        
-        if(!email) {
-            alert("Error: No se ha detectado el correo del usuario.");
-            return;
-        }
-        
-        // Simulación de envío exitoso
-        document.getElementById('form-content').style.display = 'none';
-        document.getElementById('success-msg').style.display = 'block';
-        window.scrollTo(0,0);
+        const csat = document.querySelector('input[name="csat"]:checked').value;
+        const abierta = document.querySelector('textarea[name="abierta"]').value;
+
+        // Construimos los parámetros para enviarlos por el método GET (doGet)
+        const params = new URLSearchParams({
+            email: email,
+            csat: csat,
+            abierta: abierta
+        });
+
+        // Enviamos los datos a Google Sheets
+        fetch(WEB_APP_URL + "?" + params.toString(), {
+            method: 'GET',
+            mode: 'no-cors'
+        }).then(() => {
+            // Si sale bien, ocultamos el formulario y mostramos el mensaje de éxito
+            document.getElementById('form-content').style.display = 'none';
+            document.getElementById('success-msg').style.display = 'block';
+            window.scrollTo(0,0);
+        }).catch(err => {
+            alert("Error al enviar la encuesta.");
+            btn.disabled = false;
+            btn.innerText = 'ENVIAR ENCUESTA';
+        });
     };
 </script>
 </body>
