@@ -90,9 +90,10 @@
    <script>
     // 1. CAPTURAR EL EMAIL Y EL PAÍS DE LA URL
     window.onload = function() {
-        const urlParams = new URLSearchParams(window.location.search);
+       const urlParams = new URLSearchParams(window.location.search);
         const emailFromUrl = urlParams.get('utm_email');
         const paisFromUrl = urlParams.get('pais'); 
+        const idEnvioFromUrl = urlParams.get('id_envio'); // <- NUEVA LÍNEA
         
         if (emailFromUrl) {
             document.getElementById('emailInput').value = emailFromUrl;
@@ -131,11 +132,13 @@
         const email = document.getElementById('emailInput').value;
         const csat = csatInput.value;
         const abierta = document.querySelector('textarea[name="abierta"]').value;
+        const idEnvio = urlParams.get('id_envio') || ''; // <- NUEVA LÍNEA
 
         const params = new URLSearchParams({
             email: email,
             csat: csat,
-            abierta: abierta
+            abierta: abierta,
+            id_envio: idEnvio // <- NUEVA LÍNEA
         });
 
         fetch(WEB_APP_URL + "?" + params.toString(), {
