@@ -87,39 +87,52 @@
         </div>
     </div>
 
-   <script>
-    // 1. CAPTURAR EL EMAIL Y EL PAÍS DE LA URL
+<script>
+    // 1. CAPTURAR LOS DATOS DE LA URL Y VERIFICAR SI YA FUE RESPONDIDA
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbznGMFuky7P9fxJbJZfAw-sJ3AGg0DoNhpDgWUvdy5_JdlKoIJu95vNPbcgnDvqX6GO/exec"; 
+
     window.onload = function() {
-       const urlParams = new URLSearchParams(window.location.search);
+        const urlParams = new URLSearchParams(window.location.search);
         const emailFromUrl = urlParams.get('utm_email');
         const paisFromUrl = urlParams.get('pais'); 
-        const idEnvioFromUrl = urlParams.get('id_envio'); // <- NUEVA LÍNEA
+        const idEnvioFromUrl = urlParams.get('id_envio'); 
         
         if (emailFromUrl) {
             document.getElementById('emailInput').value = emailFromUrl;
-            console.log("Email capturado con éxito:", emailFromUrl);
         }
 
+        // Configuración de logos según país
         const logoMexico = "https://lh3.googleusercontent.com/d/1q8BvfZf_gvE7Z7j5JZA2bMzxtxG7vsYG";
         const logoOtros = "https://lh3.googleusercontent.com/d/12upXsdMnB3_YmXU1Dm49lfJnUlpJFbHi";
-
         let logoFinal = logoOtros;
         if (paisFromUrl && (paisFromUrl.toLowerCase() === "mexico" || paisFromUrl.toLowerCase() === "méxico")) {
             logoFinal = logoMexico;
         }
-
         document.getElementById('logoApprecio').src = logoFinal;
         document.getElementById('logoApprecioSuccess').src = logoFinal;
+
+        // --- EL BLOQUEO AUTOMÁTICO AL CARGAR ---
+        if (idEnvioFromUrl) {
+            // Le preguntamos a Google Sheets si este ID ya está "respondido"
+            fetch(WEB_APP_URL + "?id_envio=" + encodeURIComponent(idEnvioFromUrl) + "&verificar=true")
+            .then(res => res.text())
+            .then(texto => {
+                if (texto.trim() === "YaRespondido") {
+                    // Ocultamos el formulario y mostramos el mensaje de bloqueo
+                    document.getElementById('form-content').style.display = 'none';
+                    document.getElementById('success-msg').style.display = 'block';
+                    document.querySelector('#success-msg h2').innerText = "Encuesta Completada";
+                    document.querySelector('#success-msg p').innerText = "Esta encuesta ya se encuentra respondida. ¡Muchas gracias por tu participación!";
+                }
+            }).catch(err => console.log("Error verificando estado:", err));
+        }
     };
 
     // 2. CONFIGURACIÓN DE ENVÍO REAL
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbznGMFuky7P9fxJbJZfAw-sJ3AGg0DoNhpDgWUvdy5_JdlKoIJu95vNPbcgnDvqX6GO/exec"; 
-
     document.getElementById('surveyForm').onsubmit = function(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
         
-        // Verificación de seguridad para la opción seleccionada
         const csatInput = document.querySelector('input[name="csat"]:checked');
         if (!csatInput) {
             alert("Por favor, selecciona una calificación antes de enviar.");
@@ -129,16 +142,18 @@
         btn.disabled = true;
         btn.innerText = 'ENVIANDO...';
 
+        // Volvemos a leer la URL para obtener los datos correctos al enviar
+        const urlParams = new URLSearchParams(window.location.search);
         const email = document.getElementById('emailInput').value;
         const csat = csatInput.value;
         const abierta = document.querySelector('textarea[name="abierta"]').value;
-        const idEnvio = urlParams.get('id_envio') || ''; // <- NUEVA LÍNEA
+        const idEnvio = urlParams.get('id_envio') || ''; 
 
         const params = new URLSearchParams({
             email: email,
             csat: csat,
             abierta: abierta,
-            id_envio: idEnvio // <- NUEVA LÍNEA
+            id_envio: idEnvio
         });
 
         fetch(WEB_APP_URL + "?" + params.toString(), {
